@@ -1,0 +1,32 @@
+# 1 build
+docker compose up -d --build
+# 2 generacja tokenu
+docker exec -it influxdb3-demo influxdb3 create token --admin
+# przejdź do pliku tokeny.txt oraz zapisz go
+
+# 3 wejście do kontenera
+docker exec -it influxdb3-demo bash
+
+# 4 zapis w zmiennej środowiskowej wewnątrz kontenera
+export INFLUXDB_TOKEN="apiv3_d83hK9iJ8dXTU-BKKzT7JXBgk0fAH5745KVI4Nw_f44Uzuz-ej_15eY31xo4QhblwOK-iNf7SePTye66hHDplw"
+
+# 5 zapis danych do bazy
+    3 sposoby
+    1) CLI akurat z pliku tekstowego
+    influxdb3 write --database exercises --file /import-data/cpu_clock.txt --token $INFLUXDB_TOKEN
+    influxdb3 write --database exercises --file /import-data/cpu_data.txt --token $INFLUXDB_TOKEN
+    influxdb3 write --database exercises --file /import-data/cpu_load.txt --token $INFLUXDB_TOKEN
+    influxdb3 write --database exercises --file /import-data/cpu_power.txt --token $INFLUXDB_TOKEN
+    influxdb3 write --database exercises --file /import-data/cpu_voltage.txt --token $INFLUXDB_TOKEN
+    influxdb3 write --database exercises --file /import-data/gpu_clock.txt --token $INFLUXDB_TOKEN
+    influxdb3 write --database exercises --file /import-data/gpu_load.txt --token $INFLUXDB_TOKEN
+    influxdb3 write --database exercises --file /import-data/gpu_power.txt --token $INFLUXDB_TOKEN
+    influxdb3 write --database exercises --file /import-data/gpu_temp.txt --token $INFLUXDB_TOKEN
+
+
+    2) Using HTTP API
+        pokaż tylko przykłąd z dok
+    3) using python script pokaż tylko przykład z dok
+
+
+

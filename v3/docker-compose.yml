@@ -1,0 +1,82 @@
+#docker compose up -d --build
+services:
+  influxdb3-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: influxdb3-custom:latest
+    container_name: influxdb3-demo
+    hostname: influxdb3-core
+    user: root
+
+    ports:
+      - "8181:8181"
+
+    command:
+      - influxdb3
+      - serve
+      - --node-id=node0
+      - --object-store=file
+      - --data-dir=/var/lib/influxdb3/data
+#      - --without-auth
+
+    volumes:
+      - type: bind
+        # Zmienione na lokalny folder zapisu danych 'data'
+        source: ./data
+        target: /var/lib/influxdb3/data
+      - type: bind
+        # Zmienione na lokalny folder 'plugins'
+        source: ./plugins
+        target: /var/lib/influxdb3/plugins
+      - type: bind
+        source: ./import-data
+        target: /import-data
+      - type: bind
+        source: ./import.sh
+        target: /docker-entrypoint-initdb.d/import.sh
+
+    networks:
+      - influxdb-network
+
+    healthcheck:
+      test: [ "CMD", "curl", "-s", "http://localhost:8181" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  influxdb-explorer:
+    image: influxdata/influxdb3-ui:latest
+    container_name: influxdb-explorer-demo
+
+    ports:
+      - "8088:8080"
+
+    environment:
+      INFLUXDB_URL: "http://influxdb3-demo:8181"
+      INFLUXDB3_LOG_FILTER: "info"
+
+    depends_on:
+      influxdb3-demo:
+        condition: service_healthy
+
+    networks:
+      - influxdb-network
+
+volumes:
+  influxdb-demo-storage:
+
+networks:
+  influxdb-network:
+    driver: bridge
+
+#    New token created successfully!
+#
+#    Token: apiv3_nJS01e3F44GyQFfk9X62qrMJUEQZk5cmcR0JUdYIsrM0QbAoaZF8xxr5VwXSg1kGjK_52b8j_O0KurkDJdLmuw
+#    HTTP Requests Header:
+#      Authorization: Bearer apiv3_nJS01e3F44GyQFfk9X62qrMJUEQZk5cmcR0JUdYIsrM0QbAoaZF8xxr5VwXSg1kGjK_52b8j_O0KurkDJdLmuw
+#
+#    IMPORTANT: Store this token securely, as it will not be shown again.
+
