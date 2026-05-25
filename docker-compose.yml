@@ -1,0 +1,83 @@
+services:
+  # ============================================
+  # InfluxDB 2.x - główna baza danych time-series
+  # ============================================
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb_lab
+    restart: unless-stopped
+    ports:
+      - "8086:8086"           # UI i API InfluxDB
+    volumes:
+      - influxdb_data:/var/lib/influxdb2   # dane bazy
+      - influxdb_config:/etc/influxdb2     # konfiguracja
+      - ./import-data:/import-data         # ✅ POPRAWNIE: mount folderu z danymi
+      - ./import-data.sh:/docker-entrypoint-initdb.d/import-data.sh  # ✅ DODANE: mount skryptu
+    environment:
+      # Automatyczna konfiguracja przy pierwszym uruchomieniu
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=admin123
+      - DOCKER_INFLUXDB_INIT_ORG=university
+      - DOCKER_INFLUXDB_INIT_BUCKET=exercises
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-token-2024
+    networks:
+      - tdb_lab
+
+  # ============================================
+  # Telegraf - zbieranie metryk systemowych
+  # ============================================
+  telegraf:
+    image: telegraf:1.28
+    container_name: telegraf_lab
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    volumes:
+      # Mount konfiguracji Telegrafa
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      # Dostęp do systemowych metryk hosta (Linux)
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # metryki Dockera
+    environment:
+      - HOST_PROC=/host/proc
+      - HOST_SYS=/host/sys
+    networks:
+      - tdb_lab
+
+  # ============================================
+  # Grafana - wizualizacja danych
+  # ============================================
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grafana_lab
+    restart: unless-stopped
+    ports:
+      - "3000:3000"           # UI Grafany
+    volumes:
+      - grafana_data:/var/lib/grafana           # dashboardy i konfiguracja
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro  # auto-provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    depends_on:
+      - influxdb
+    networks:
+      - tdb_lab
+
+# ============================================
+# Wolumeny (dane trwałe, ale łatwe do usunięcia)
+# ============================================
+volumes:
+  influxdb_data:
+  influxdb_config:
+  grafana_data:
+
+# ============================================
+# Sieć wewnętrzna (izolacja)
+# ============================================
+networks:
+  tdb_lab:
+    driver: bridge
