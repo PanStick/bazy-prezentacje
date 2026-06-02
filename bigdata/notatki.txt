@@ -1,0 +1,17 @@
+co pokazywac spark ui?
+data inject przez csv (moze pokazanie roznych opcji, copy into, create or replace location
+desc history po kilku operacjach / desc detail
+insert overwrite dla time travel
+
+pokazac delete
+
+merge w sql i w pyspark
+automatic schema update
+
+demo dla wiekszych danych (?)
+pokazanie commitow
+Slowly changing data (SCD) Type 2 operation into Delta tables merge
+time travel (z select as of?)
+na koniec demo pokazac optimize/vacuum
+change data feed? (szukanie danych usunietych np)
+
