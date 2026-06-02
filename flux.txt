@@ -1,6 +1,0 @@
-pokaz tabele
-from(bucket: "exercises")
-  |> range(start: 1970-01-01T00:00:00Z, stop: now())
-  |> keep(columns: ["_measurement"])
-  |> group()
-  |> distinct(column: "_measurement")
